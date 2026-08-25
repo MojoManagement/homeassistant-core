@@ -32,17 +32,11 @@ def mock_config_entry() -> MockConfigEntry:
 
 @pytest.fixture
 def mock_client() -> Generator[MagicMock]:
-    """Mock the async LG soundbar client and wake-safe connectivity check."""
-    with (
-        patch(
-            "homeassistant.components.lg_soundbar.media_player.LGSoundbarClient",
-            autospec=True,
-        ) as mock_client,
-        patch(
-            "homeassistant.components.lg_soundbar.async_test_connect",
-            new_callable=AsyncMock,
-        ),
-    ):
+    """Mock the async LG soundbar client."""
+    with patch(
+        "homeassistant.components.lg_soundbar.media_player.LGSoundbarClient",
+        autospec=True,
+    ) as mock_client:
         instance = mock_client.return_value
         instance.async_connect = AsyncMock()
         instance.async_close = AsyncMock()
