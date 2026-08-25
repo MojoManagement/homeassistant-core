@@ -38,6 +38,7 @@ def mock_client() -> Generator[MagicMock]:
         autospec=True,
     ) as mock_client:
         instance = mock_client.return_value
+        instance.connected = True
         instance.async_connect = AsyncMock()
         instance.async_close = AsyncMock()
         instance.async_get = AsyncMock()
