@@ -19,6 +19,6 @@ async def setup_integration(hass: HomeAssistant, config_entry: MockConfigEntry) 
 
 def find_update_callback(
     mock: MagicMock,
-) -> Callable[[dict[str, Any]], None]:
-    """Return the callback registered with the temescal device."""
-    return mock.call_args.kwargs["callback"]
+) -> Callable[[dict[str, Any]], Any]:
+    """Return the callback registered with the async LG soundbar client."""
+    return mock.call_args.args[2]
