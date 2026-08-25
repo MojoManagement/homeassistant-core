@@ -49,9 +49,12 @@ class LGSoundbarClient:
         return self._writer is not None and not self._writer.is_closing()
 
     async def async_connect(self) -> None:
-        """Open the TCP connection without sending LG application data."""
+        """Start the wake-safe connection and reconnect loop."""
         self._closing = False
-        await self._open_connection()
+        try:
+            await self._open_connection()
+        except OSError:
+            pass
         if self._reader_task is None or self._reader_task.done():
             self._reader_task = asyncio.create_task(
                 self._reader_loop(), name=f"lg_soundbar_{self.host}"
