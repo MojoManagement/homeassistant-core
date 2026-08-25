@@ -123,7 +123,7 @@ class LGDevice(MediaPlayerEntity):
     async def async_added_to_hass(self) -> None:
         """Open the passive connection after the entity is added."""
         await self._client.async_connect()
-        self._attr_available = True
+        self._attr_available = self._client.connected
 
     @override
     async def async_will_remove_from_hass(self) -> None:
