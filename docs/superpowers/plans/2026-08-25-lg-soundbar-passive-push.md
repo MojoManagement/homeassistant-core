@@ -6,7 +6,7 @@
 
 **Architecture:** Replace the integration-local dependency on blocking `temescal` transport behavior with an asyncio client and hybrid stream parser that understands both encrypted `0x10` frames and unsolicited plaintext JSON notifications. Home Assistant connects silently, learns active/standby state from device notifications, synchronizes only after a genuine wake, and advertises power capabilities per model profile.
 
-**Tech Stack:** Python, asyncio streams, PyCryptodome AES-CBC, Home Assistant entity/config-flow APIs, pytest.
+**Tech Stack:** Python, asyncio streams, Home Assistant's existing `cryptography` AES-CBC stack, Home Assistant entity/config-flow APIs, pytest.
 
 **Spec:** `docs/superpowers/specs/2026-08-25-lg-soundbar-passive-push-design.md`
 
@@ -62,12 +62,13 @@
 - Modify: `tests/components/lg_soundbar/conftest.py`
 
 **Interfaces:**
-- `async_test_connect(host: str, port: int) -> None` validates TCP reachability only.
+- `async_test_connect(host: str, port: int) -> None` validates TCP reachability only during initial configuration.
+- Runtime setup creates only the media player's persistent connection and does not perform a separate connectivity probe.
 - Config flow initially uses host-based identity/title when metadata is unavailable.
 
-- [ ] Write failing tests proving setup and config flow perform only TCP connect/close and send no LG requests.
+- [ ] Write failing tests proving setup and config flow send no LG requests.
 - [ ] Run the focused config-flow/setup tests and verify expected failures.
-- [ ] Replace active `temescal` discovery with wake-safe TCP connectivity validation.
+- [ ] Replace active `temescal` discovery with wake-safe TCP connectivity validation in the config flow only.
 - [ ] Preserve loading of existing UUID-backed entries and prevent host duplicates for new entries.
 - [ ] Re-run focused tests and require them to pass.
 
