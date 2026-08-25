@@ -102,3 +102,45 @@ async def test_reconnect_sends_zero_application_bytes() -> None:
         await client.async_close()
         server.close()
         await server.wait_closed()
+
+
+@pytest.mark.asyncio
+async def test_initial_connection_failure_reconnects_silently(monkeypatch) -> None:
+    attempts = 0
+    second_connected = asyncio.Event()
+    received: list[bytes] = []
+    real_open_connection = asyncio.open_connection
+
+    async def handle(reader: asyncio.StreamReader, writer: asyncio.StreamWriter) -> None:
+        second_connected.set()
+        try:
+            received.append(await asyncio.wait_for(reader.read(1), 0.1))
+        except TimeoutError:
+            received.append(b"")
+        writer.close()
+        await writer.wait_closed()
+
+    server = await asyncio.start_server(handle, "127.0.0.1", 0)
+    port = server.sockets[0].getsockname()[1]
+
+    async def flaky_open_connection(host: str, target_port: int):
+        nonlocal attempts
+        attempts += 1
+        if attempts == 1:
+            raise OSError("offline")
+        return await real_open_connection(host, target_port)
+
+    monkeypatch.setattr(asyncio, "open_connection", flaky_open_connection)
+    client = LGSoundbarClient(
+        "127.0.0.1", port, lambda message: None, reconnect_delays=(0.01,)
+    )
+    try:
+        await client.async_connect()
+        await asyncio.wait_for(second_connected.wait(), 1)
+        await asyncio.sleep(0.15)
+        assert attempts >= 2
+        assert received == [b""]
+    finally:
+        await client.async_close()
+        server.close()
+        await server.wait_closed()
