@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from homeassistant import config_entries
 from homeassistant.components.lg_soundbar.config_flow import async_test_connect
-from homeassistant.components.lg_soundbar.const import DEFAULT_PORT, DOMAIN
+from homeassistant.components.lg_soundbar.const import CONF_MODEL, DEFAULT_PORT, DOMAIN
 from homeassistant.const import CONF_HOST, CONF_PORT
 from homeassistant.core import HomeAssistant
 from homeassistant.data_entry_flow import FlowResultType
@@ -65,10 +65,15 @@ async def test_form(hass: HomeAssistant) -> None:
 
 
 async def test_form_host_already_configured(hass: HomeAssistant) -> None:
-    """Test a host cannot be configured twice without waking it."""
+    """Test cached metadata does not defeat host-based duplicate detection."""
     MockConfigEntry(
         domain=DOMAIN,
-        data={CONF_HOST: "1.1.1.1", CONF_PORT: DEFAULT_PORT},
+        data={
+            CONF_HOST: "1.1.1.1",
+            CONF_PORT: DEFAULT_PORT,
+            CONF_MODEL: "SP11RA",
+        },
+        unique_id="existing-uuid",
     ).add_to_hass(hass)
 
     result = await hass.config_entries.flow.async_init(
